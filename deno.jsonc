@@ -1,0 +1,6 @@
+{
+  "deploy": {
+    "org": "freijustin",
+    "app": "cubegame"
+  }
+}
