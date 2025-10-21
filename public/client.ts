@@ -2,6 +2,7 @@ interface Player {
   id: string;
   x: number;
   y: number;
+  it: boolean;
 }
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;

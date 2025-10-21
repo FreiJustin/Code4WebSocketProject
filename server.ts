@@ -2,10 +2,18 @@ interface Player {
   id: string;
   x: number;
   y: number;
+  it: boolean;
+}
+
+interface Coords{
+  x:number;
+  y:number;
 }
 
 const players: Record<string, Player> = {};
 const sockets = new Map<string, WebSocket>();
+
+let it:string="";
 
 const canvas={height:400,width:600};
 
@@ -41,8 +49,17 @@ Deno.serve((request) => {
     
     const { socket, response } = Deno.upgradeWebSocket(request);
     const id = crypto.randomUUID();
+    
+    let shouldBeIt:boolean=false;
+    if(it===""){
+      shouldBeIt=true;
+      it=id;
+    }
 
-    players[id] = { id, x: 100, y: 100 };
+    const spawn:Coords=rollSpawn();
+
+    players[id] = { id, x: spawn.x, y: spawn.y , it:shouldBeIt};
+    console.log(players[id]);
     sockets.set(id, socket);
 
     socket.addEventListener("open", () => {
@@ -90,3 +107,24 @@ Deno.serve((request) => {
 
   return new Response("Not found", { status: 404 });
 });
+
+function rollSpawn(): Coords {
+  if (Math.random() < 0.5) {
+    if (Math.random() < 0.5) {
+      return { x: Math.random() * canvas.width, y: 10 }
+    }
+    else {
+      return { x: Math.random() * canvas.width, y: canvas.height - 10 }
+    }
+
+  }
+  else {
+    if (Math.random() < 0.5) {
+      return { x: 10, y: Math.random() * canvas.height }
+    }
+    else {
+      return { x: canvas.width - 10, y: Math.random() * canvas.height }
+    }
+  }
+}
+
