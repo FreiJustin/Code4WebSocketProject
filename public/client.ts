@@ -4,7 +4,14 @@ interface Player {
   y: number;
   it: boolean;
 }
-
+//new
+interface Obstacle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+//
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 
@@ -12,12 +19,15 @@ const protocol = location.protocol === "https:" ? "wss:" : "ws:";
 const socket = new WebSocket(`${protocol}//${location.host}/ws`);
 let myId: string | null = null;
 let players: Record<string, Player> = {};
+let obstacles: Obstacle[] = []; //store obstacles 
 
 socket.addEventListener("message", (event: MessageEvent) => {
   const msg = JSON.parse(event.data);
   if (msg.type === "init") {
     myId = msg.id;
     players = msg.players;
+    obstacles = msg.obstacles || [];//recieve obstacles once
+    console.log(obstacles);
   } else if (msg.type === "join") {
     players[msg.player.id] = msg.player;
   } else if (msg.type === "update") {
@@ -34,11 +44,11 @@ document.addEventListener("keydown", (e: KeyboardEvent) => {
 });
 
 document.getElementById("controls")!.addEventListener("click", (e: MouseEvent) => {
-    const target = e.target as HTMLButtonElement;
-    if (target.tagName === "BUTTON") {
-        const dir = target.id;
-        socket.send(JSON.stringify({ type: "move", dir }));
-    }
+  const target = e.target as HTMLButtonElement;
+  if (target.tagName === "BUTTON") {
+    const dir = target.id;
+    socket.send(JSON.stringify({ type: "move", dir }));
+  }
 });
 
 function keyToDir(key: string): string {
@@ -59,6 +69,11 @@ function gameLoop() {
     ctx.fillStyle = id === myId ? "blue" : "red";
     ctx.fillRect(p.x, p.y, 20, 20);
   }
+  ctx.fillStyle = "#180a29";
+  for (const o of obstacles) {
+    ctx.fillRect(o.x, o.y, o.width, o.height);
+  }
   requestAnimationFrame(gameLoop);
+
 }
 gameLoop();
