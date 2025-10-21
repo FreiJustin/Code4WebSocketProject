@@ -7,6 +7,8 @@ interface Player {
 const players: Record<string, Player> = {};
 const sockets = new Map<string, WebSocket>();
 
+const canvas={height:400,width:600};
+
 function broadcast(message: unknown, except?: string) {
   for (const [id, socket] of sockets) {
     if (id !== except) {
@@ -58,6 +60,20 @@ Deno.serve((request) => {
         if (msg.dir === "down") p.y += 10;
         if (msg.dir === "left") p.x -= 10;
         if (msg.dir === "right") p.x += 10;
+
+        if (p.y>canvas.height){
+          p.y=p.y-canvas.height;
+        }
+        else if(p.y<0){
+          p.y=canvas.height+p.y;
+        }
+        else if (p.x > canvas.width) {
+          p.x = p.x - canvas.width;
+        }
+        else if (p.x < 0) {
+          p.x = canvas.width + p.x;
+        }
+        
         broadcast({ type: "update", player: p });
       }
     });
