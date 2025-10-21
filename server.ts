@@ -50,13 +50,16 @@ Deno.serve((request) => {
     const { socket, response } = Deno.upgradeWebSocket(request);
     const id = crypto.randomUUID();
     
+
+    const spawn: Coords = rollSpawn();
+
     let shouldBeIt:boolean=false;
     if(it===""){
       shouldBeIt=true;
       it=id;
     }
 
-    const spawn:Coords=rollSpawn();
+    
 
     players[id] = { id, x: spawn.x, y: spawn.y , it:shouldBeIt};
     console.log(players[id]);
@@ -97,6 +100,16 @@ Deno.serve((request) => {
 
     socket.addEventListener("close", () => {
       console.log(`Player ${id} disconnected`);
+      if (players[id].it&&Object.keys(players).length>1){
+        const playerIDs:string[]=Object.keys(players);
+        playerIDs.splice(playerIDs.indexOf(it),1);
+        const newIt:string=playerIDs[Math.floor(Math.random()*playerIDs.length)];
+        players[newIt].it=true;
+        it=newIt;
+      }
+      else{
+        it="";
+      }
       delete players[id];
       sockets.delete(id);
       broadcast({ type: "leave", id });
@@ -108,23 +121,32 @@ Deno.serve((request) => {
   return new Response("Not found", { status: 404 });
 });
 
-function rollSpawn(): Coords {
+function rollSpawn(): Coords { //vielleicht funktionierts vielleicht nicht
+  let position:Coords;
   if (Math.random() < 0.5) {
     if (Math.random() < 0.5) {
-      return { x: Math.random() * canvas.width, y: 10 }
+      position= { x: Math.random() * canvas.width, y: 10 }
     }
     else {
-      return { x: Math.random() * canvas.width, y: canvas.height - 10 }
+      position= { x: Math.random() * canvas.width, y: canvas.height - 10 }
     }
 
   }
   else {
     if (Math.random() < 0.5) {
-      return { x: 10, y: Math.random() * canvas.height }
+      position= { x: 10, y: Math.random() * canvas.height }
     }
     else {
-      return { x: canvas.width - 10, y: Math.random() * canvas.height }
+      position= { x: canvas.width - 10, y: Math.random() * canvas.height }
     }
   }
+  if (it!=""){
+    if (Math.pow((Math.pow((position.x - players[it].x), 2) + Math.pow(position.y - players[it].y, 2)), 0.5) < 50) {
+      position = rollSpawn();
+    }
+  }
+  
+  return position;
+  
 }
 
