@@ -1,15 +1,19 @@
 "use strict";
+//
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const protocol = location.protocol === "https:" ? "wss:" : "ws:";
 const socket = new WebSocket(`${protocol}//${location.host}/ws`);
 let myId = null;
 let players = {};
+let obstacles = []; //store obstacles 
 socket.addEventListener("message", (event) => {
     const msg = JSON.parse(event.data);
     if (msg.type === "init") {
         myId = msg.id;
         players = msg.players;
+        obstacles = msg.obstacles || []; //recieve obstacles once
+        console.log(obstacles);
     }
     else if (msg.type === "join") {
         players[msg.player.id] = msg.player;
@@ -53,6 +57,10 @@ function gameLoop() {
         const p = players[id];
         ctx.fillStyle = id === myId ? "blue" : "red";
         ctx.fillRect(p.x, p.y, 20, 20);
+    }
+    ctx.fillStyle = "#180a29";
+    for (const o of obstacles) {
+        ctx.fillRect(o.x, o.y, o.width, o.height);
     }
     requestAnimationFrame(gameLoop);
 }
