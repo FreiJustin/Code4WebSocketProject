@@ -64,8 +64,15 @@ function keyToDir(key: string): string {
 function gameLoop() {
   ctx.fillStyle = "pink";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
   for (const id in players) {
     const p = players[id];
+
+    if (p.it){
+      ctx.fillStyle="white";
+      ctx.fillRect(p.x-2,p.y-2,24,24);
+    }
+
     ctx.fillStyle = id === myId ? "blue" : "red";
     ctx.fillRect(p.x, p.y, 20, 20);
   }

@@ -146,6 +146,18 @@ Deno.serve((request) => {
           p.x = oldX;
           p.y = oldY;
         }
+        
+        console.log(players);
+
+        for (const id in players) {
+          const p = players[id];
+          if (hasBeenCaught(p)) {
+            console.log("player has been caught");
+            resetPlayer(p);
+          }
+        } 
+        
+        
         broadcast({ type: "update", player: p });
       }
     });
@@ -158,6 +170,7 @@ Deno.serve((request) => {
         const newIt:string=playerIDs[Math.floor(Math.random()*playerIDs.length)];
         players[newIt].it=true;
         it=newIt;
+        broadcast({ type: "update", player: players[newIt] });
       }
       else{
         it="";
@@ -177,28 +190,57 @@ function rollSpawn(): Coords { //vielleicht funktionierts vielleicht nicht
   let position:Coords;
   if (Math.random() < 0.5) {
     if (Math.random() < 0.5) {
-      position= { x: Math.random() * canvas.width, y: 10 }
+      position= { x: Math.floor(Math.random() * ((canvas.width-20)/10))*10, y: 0 }
     }
     else {
-      position= { x: Math.random() * canvas.width, y: canvas.height - 10 }
+      position = { x: Math.floor(Math.random() * ((canvas.width-20) / 10)) * 10, y: canvas.height - 20 }
     }
 
   }
   else {
     if (Math.random() < 0.5) {
-      position= { x: 10, y: Math.random() * canvas.height }
+      position = { x: 0, y: Math.floor(Math.random() * ((canvas.height-20) / 10)) * 10 }
     }
     else {
-      position= { x: canvas.width - 10, y: Math.random() * canvas.height }
+      position = { x: canvas.width - 20, y: Math.floor(Math.random() * ((canvas.height-20) / 10)) * 10 }
     }
   }
   if (it!=""){
-    if (Math.pow((Math.pow((position.x - players[it].x), 2) + Math.pow(position.y - players[it].y, 2)), 0.5) < 50) {
+    if (distance(position.x,position.y,players[it].x,players[it].y) < 50) {
       position = rollSpawn();
     }
   }
   
   return position;
   
+}
+
+function hasBeenCaught(player: Player): boolean {
+  if (player.it) {
+    console.log("player is it")
+    return false;
+  }
+
+  if (distance(player.x,player.y,players[it].x,players[it].y)<20){
+    console.log("player has been caught")
+    return true;
+  }
+  else{
+    console.log("player is far away")
+    return false;
+  }
+
+}
+
+function resetPlayer(p:Player):void{
+  const newPos:Coords=rollSpawn();
+  players[p.id].x=newPos.x;
+  players[p.id].y=newPos.y;
+  broadcast({ type: "update", player: p });
+
+}
+
+function distance(x1: number, y1: number, x2: number, y2: number): number {
+  return Math.pow(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2), 0.5);
 }
 
